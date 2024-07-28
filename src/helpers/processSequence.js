@@ -14,7 +14,9 @@
  * Иногда промисы от API будут приходить в состояние rejected, (прямо как и API в реальной жизни)
  * Ответ будет приходить в поле {result}
  */
- import Api from '../tools/api';
+import Api from '../tools/api';
+import {andThen, compose, pipe} from "ramda";
+import {isNumber} from "lodash";
 
  const api = new Api();
 
@@ -26,7 +28,26 @@
  })
 
  const processSequence = ({value, writeLog, handleSuccess, handleError}) => {
-     /**
+   const _writeLog = ({ value }) => () => writeLog(value) && value;
+   const writeResultLog = () => (value) => writeLog(value) && value;
+   const validate = ({ value }) => () => String(value).length < 10 && String(value).length > 2 && isNumber(Number(value)) && Number(value) > 0;
+   const execute = () => (value) => api.get('https://api.tech/numbers/base', {from: 2, to: 10, number: value});
+
+   const ceil = ({ value }) => () => Math.ceil(value);
+
+
+   return pipe(
+     _writeLog({value, writeLog}),
+     validate({value}),
+     ceil({value}),
+     execute(),
+     andThen(pipe(
+       writeResultLog({ writeLog }),
+
+     ))
+   )
+
+   /**
       * Я – пример, удали меня
       */
      writeLog(value);
