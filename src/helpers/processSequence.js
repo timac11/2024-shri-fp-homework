@@ -15,58 +15,68 @@
  * Ответ будет приходить в поле {result}
  */
 import Api from '../tools/api';
-import {andThen, compose, pipe} from "ramda";
-import {isNumber} from "lodash";
+import { allPass, andThen, ifElse, otherwise, partial, pipe, prop, tap } from "ramda";
+import { isNumber } from "lodash";
 
- const api = new Api();
-
- /**
-  * Я – пример, удали меня
-  */
- const wait = time => new Promise(resolve => {
-     setTimeout(resolve, time);
- })
-
- const processSequence = ({value, writeLog, handleSuccess, handleError}) => {
-   const _writeLog = ({ value }) => () => writeLog(value) && value;
-   const writeResultLog = () => (value) => writeLog(value) && value;
-   const validate = ({ value }) => () => String(value).length < 10 && String(value).length > 2 && isNumber(Number(value)) && Number(value) > 0;
-   const execute = () => (value) => api.get('https://api.tech/numbers/base', {from: 2, to: 10, number: value});
-
-   const ceil = ({ value }) => () => Math.ceil(value);
+const api = new Api();
 
 
-   return pipe(
-     _writeLog({value, writeLog}),
-     validate({value}),
-     ceil({value}),
-     execute(),
-     andThen(pipe(
-       writeResultLog({ writeLog }),
+const stringLenLessThanTen = val => String(val).length < 10;
+const stringLenMoreThanTwo = val => String(val).length > 2;
+const positiveNumber = val => Number(val) > 0;
 
-     ))
-   )
+const _isNumber = val => isNumber(Number(val));
 
-   /**
-      * Я – пример, удали меня
-      */
-     writeLog(value);
+const symbolsCount = val => String(val).length;
 
-     api.get('https://api.tech/numbers/base', {from: 2, to: 10, number: '01011010101'}).then(({result}) => {
-         writeLog(result);
-     });
+const square = val => Number(val) ** 2;
 
-     wait(2500).then(() => {
-         writeLog('SecondLog')
+const remainder = val => val % 3;
 
-         return wait(1500);
-     }).then(() => {
-         writeLog('ThirdLog');
+const getResult = pipe(prop('result'), String);
 
-         return wait(400);
-     }).then(() => {
-         handleSuccess('Done');
-     });
+const execute = (value) => api.get('https://api.tech/numbers/base', {from: 2, to: 10, number: value});
+const getAnimal = (id) => api.get(`https://animals.tech/${id}`, undefined);
+
+const processSequence = ({value, writeLog, handleSuccess, handleError}) => {
+   const writeResultLog = tap(writeLog);
+   const validate = allPass([
+      positiveNumber,
+      _isNumber,
+      stringLenMoreThanTwo,
+      stringLenLessThanTen
+     ]
+   );
+
+   const ceil = () => Math.ceil(value);
+
+   const aggregate = pipe(
+     ceil,
+     writeResultLog,
+     execute,
+     andThen(
+       pipe(
+         getResult,
+         writeResultLog,
+         symbolsCount,
+         writeResultLog,
+         square,
+         writeResultLog,
+         remainder,
+         writeResultLog,
+         getAnimal,
+         andThen(pipe(getResult, handleSuccess)),
+         otherwise(handleError)
+       )
+     ),
+     otherwise(handleError)
+   );
+
+   const validationError = partial(handleError, ['ValidationError']);
+   const run = ifElse(validate, aggregate, validationError);
+   const logAndRun = pipe(writeResultLog, run);
+
+   logAndRun(value);
  }
 
 export default processSequence;
