@@ -12,8 +12,8 @@
  *
  * Если какие либо функции написаны руками (без использования библиотек) это не является ошибкой
  */
-import {allPass, anyPass, compose, propEq, propSatisfies} from "ramda";
-import {COLORS, SHAPES} from "../constants";
+import { allPass, anyPass, compose, propEq } from "ramda";
+import { COLORS, SHAPES } from "../constants";
 
 const countPass = (count, functions, exact = false) => {
       return (...args) => {
@@ -29,7 +29,7 @@ const countPass = (count, functions, exact = false) => {
       }
 }
 
-const countValues = () => (obj) =>
+const countValues = (obj) =>
     Object
       .values(obj)
       .reduce((res, item) => Object.assign(res, { [item]: res[item] ? res[item] + 1 : 1 }), {})
@@ -59,7 +59,7 @@ export const validateFieldN2 = countPass(2, [
 // 3. Количество красных фигур равно кол-ву синих.
 export const validateFieldN3 = compose(
     objectPropsEquals(COLORS.RED, COLORS.BLUE),
-    countValues(),
+    countValues,
 );
 
 // 4. Синий круг, красная звезда, оранжевый квадрат треугольник любого цвета
@@ -77,7 +77,7 @@ export const validateFieldN5 = compose(
     objectPropMoreThan(COLORS.ORANGE, 3),
     objectPropMoreThan(COLORS.RED, 3),
   ]),
-  countValues()
+  countValues
 )
 
 // 6. Ровно две зеленые фигуры (одна из зелёных – это треугольник), плюс одна красная. Четвёртая оставшаяся любого доступного цвета, но не нарушающая первые два условия
@@ -88,14 +88,14 @@ export const validateFieldN6 = allPass([
       propEq(COLORS.GREEN, 2),
       propEq(COLORS.RED, 1),
     ]),
-    countValues()
+    countValues
   )
 ]);
 
 // 7. Все фигуры оранжевые.
 export const validateFieldN7 = compose(
   propEq(COLORS.ORANGE, 4),
-  countValues()
+  countValues
 );
 
 // 8. Не красная и не белая звезда, остальные – любого цвета.
@@ -108,7 +108,7 @@ export const validateFieldN8 = anyPass([
 // 9. Все фигуры зеленые.
 export const validateFieldN9 = compose(
   propEq(COLORS.GREEN, 4),
-  countValues()
+  countValues
 );
 
 // 10. Треугольник и квадрат одного цвета (не белого), остальные – любого цвета
