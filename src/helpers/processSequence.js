@@ -38,17 +38,18 @@ const getResult = pipe(prop('result'), String);
 const execute = (value) => api.get('https://api.tech/numbers/base', {from: 10, to: 2, number: value});
 const getAnimal = (id) => api.get(`https://animals.tech/${id}`, undefined);
 
+const ceil = (value) => Math.ceil(value);
+
+const validate = allPass([
+    positiveNumber,
+    _isNumber,
+    stringLenMoreThanTwo,
+    stringLenLessThanTen
+  ]
+);
+
 const processSequence = ({value, writeLog, handleSuccess, handleError}) => {
    const writeResultLog = tap(writeLog);
-   const validate = allPass([
-      positiveNumber,
-      _isNumber,
-      stringLenMoreThanTwo,
-      stringLenLessThanTen
-     ]
-   );
-
-   const ceil = () => Math.ceil(value);
 
    const aggregate = pipe(
      ceil,
