@@ -15,19 +15,8 @@
 import { allPass, anyPass, compose, propEq } from "ramda";
 import { COLORS, SHAPES } from "../constants";
 
-const countPass = (count, functions, exact = false) => {
-      return (...args) => {
-          let current = 0;
-          for (const func of functions) {
-            if (func(...args)) {
-                  current++;
-                  if (!exact && current >= count) return true;
-            }
-          }
-
-          return exact && current === count;
-      }
-}
+const countPass = (count, functions, exact = false) =>
+  (...args) => functions.map(item => item(...args)).filter(Boolean).length >= count
 
 const countValues = (obj) =>
     Object
@@ -37,7 +26,6 @@ const countValues = (obj) =>
 
 const objectPropsEquals = (first, second) => (obj) => obj[first] === obj[second];
 const objectPropMoreThan = (prop, value) => (obj) => obj[prop] >= value;
-const objectPropEquals = (prop, value) => (obj) => obj[prop] === value;
 const propNotEq = (prop, value) => (obj) => obj[prop] !== value;
 
 const triangleWhite = propEq(SHAPES.TRIANGLE, COLORS.WHITE);
