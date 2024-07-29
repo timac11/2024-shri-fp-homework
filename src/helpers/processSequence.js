@@ -35,7 +35,7 @@ const remainder = val => val % 3;
 
 const getResult = pipe(prop('result'), String);
 
-const execute = (value) => api.get('https://api.tech/numbers/base', {from: 2, to: 10, number: value});
+const execute = (value) => api.get('https://api.tech/numbers/base', {from: 10, to: 2, number: value});
 const getAnimal = (id) => api.get(`https://animals.tech/${id}`, undefined);
 
 const processSequence = ({value, writeLog, handleSuccess, handleError}) => {
